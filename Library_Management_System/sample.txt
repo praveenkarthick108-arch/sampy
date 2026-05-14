@@ -1,0 +1,489 @@
+Phase 1 — Library Management System
+
+1. Project Title
+
+Library Management System
+
+2. Project Overview
+
+Libraries in schools, colleges, training institutes, and organizations often manage books and borrower records manually using notebooks, spreadsheets, or standalone systems.
+
+These traditional approaches create several operational challenges such as:
+
+· Difficulty tracking available books
+
+· Manual borrower management
+
+· Lack of centralized records
+
+· Delayed book return tracking
+
+· Inefficient search capabilities
+
+· Poor visibility into borrowing history
+
+To modernize the process, the organization wants to build a centralized web-based Library Management System using:
+
+· Frontend: React
+
+· Backend: Python FastAPI
+
+· Database: SQLite/PostgreSQL
+
+This Phase 1 implementation focuses on developing the foundational full-stack application with core library management capabilities. The application should also be designed in a scalable manner to support future enhancements involving:
+
+· Data Engineering pipelines
+
+· Analytics dashboards
+
+· Recommendation systems
+
+· AI-powered semantic book search
+
+· Intelligent knowledge retrieval systems
+
+3. Business Problem Statement
+
+The library currently lacks a centralized digital platform for managing books, borrowers, and transactions.
+
+Current operational challenges include:
+
+· Manual tracking of books and borrowers
+
+· Difficulty searching books efficiently
+
+· No proper borrowing history management
+
+· Limited visibility into book availability
+
+· No centralized reporting system
+
+· Inefficient management of returns and overdue books
+
+The proposed system will digitize and streamline library operations through a centralized web application.
+
+4. Project Objective
+
+The objective of this capstone project is to design and develop a scalable Library Management System that enables users to:
+
+· Manage books
+
+· Manage borrowers
+
+· Borrow and return books
+
+· Search books efficiently
+
+· Track library transactions
+
+The application should follow industry-standard full-stack development practices and REST API design principles.
+
+5. Scope of Phase 1
+
+Phase 1 includes:
+
+· Full-stack application development
+
+· REST API implementation
+
+· Book management
+
+· Borrower management
+
+· Borrow/return workflows
+
+· Search functionality
+
+· Database integration
+
+· Frontend-backend integration
+
+Phase 1 does NOT include:
+
+· Authentication and authorization
+
+· Notifications/reminders
+
+· Fine calculation
+
+· AI/ML integration
+
+· Recommendation systems
+
+· Semantic search
+
+· Cloud deployment
+
+6. Functional Requirements
+
+6.1 Book Management
+
+The system should allow administrators to:
+
+· Add new books
+
+· Update book information
+
+· Delete books
+
+· View all books
+
+Book Information
+
+Each book should contain:
+
+· Title
+
+· Author
+
+· Category
+
+· ISBN Number
+
+· Availability Status
+
+6.2 Borrower Management
+
+The system should allow administrators to:
+
+· Add borrower details
+
+· View borrower records
+
+· Update borrower information
+
+· Delete borrower records
+
+Borrower Information
+
+Each borrower should contain:
+
+· Borrower Name
+
+· Contact Number
+
+· Email Address
+
+6.3 Borrow Book
+
+The system should allow:
+
+· Borrowing available books
+
+· Recording borrowing date
+
+· Updating book availability
+
+6.4 Return Book
+
+The system should allow:
+
+· Returning borrowed books
+
+· Updating return date
+
+· Marking books as available
+
+6.5 Search Functionality
+
+The application should support:
+
+· Search by title
+
+· Search by author
+
+· Search by category
+
+· Keyword-based search
+
+7. System Users
+
+User Type Responsibilities
+
+Librarian/Admin Manage books and borrowers
+
+Borrower/User Borrow and return books
+
+8. Technical Requirements
+
+8.1 Frontend Requirements (React)
+
+The frontend application should be developed using React.
+
+Mandatory Concepts
+
+· Functional Components
+
+· React Hooks
+
+· Component-based architecture
+
+· Axios or Fetch API
+
+· Form validation
+
+· Responsive UI design
+
+Suggested Pages
+
+Dashboard Page
+
+Displays:
+
+· Total books
+
+· Borrowed books count
+
+· Available books count
+
+· Recent transactions
+
+Book Management Page
+
+Allows:
+
+· Add/Edit/Delete books
+
+· View book listings
+
+Borrower Management Page
+
+Allows:
+
+· Add/Edit/Delete borrowers
+
+· View borrower records
+
+Borrow/Return Page
+
+Allows:
+
+· Borrow books
+
+· Return books
+
+· Track transactions
+
+Search Page
+
+Allows:
+
+· Search books
+
+· Filter by category or author
+
+8.2 Backend Requirements (FastAPI)
+
+The backend application should be developed using FastAPI.
+
+Mandatory Concepts
+
+· FastAPI routing
+
+· Pydantic models
+
+· CRUD operations
+
+· Database integration
+
+· Exception handling
+
+· REST API standards
+
+· CORS middleware
+
+9. API Requirements
+
+Book APIs
+
+Method Endpoint Description
+
+GET /books Retrieve all books
+
+GET /books/{id} Retrieve book by ID
+
+POST /books Add new book
+
+PUT /books/{id} Update book
+
+DELETE /books/{id} Delete book
+
+Borrower APIs
+
+Method Endpoint Description
+
+GET /borrowers Retrieve all borrowers
+
+POST /borrowers Add borrower
+
+PUT /borrowers/{id} Update borrower
+
+DELETE /borrowers/{id} Delete borrower
+
+Transaction APIs
+
+Method Endpoint Description
+
+POST /borrow Borrow book
+
+POST /return Return book
+
+GET /transactions View transactions
+
+Search APIs
+
+Method Endpoint Description
+
+GET /search Search books
+
+10. Database Requirements
+
+The application should use:
+
+· SQLite (preferred for Phase 1) OR
+
+· PostgreSQL
+
+11. Database Schema
+
+Books Table
+
+Column Name Data Type
+
+book_id Integer
+
+title String
+
+author String
+
+category String
+
+isbn String
+
+availability_status String
+
+Borrowers Table
+
+Column Name Data Type
+
+borrower_id Integer
+
+borrower_name String
+
+email String
+
+phone String
+
+Transactions Table
+
+Column Name Data Type
+
+transaction_id Integer
+
+book_id Integer
+
+borrower_id Integer
+
+borrow_date DateTime
+
+return_date DateTime
+
+12. Suggested Project Structure
+
+Backend Structure
+
+backend/ │ ├── main.py ├── database.py ├── models.py ├── schemas.py ├── crud.py ├── routers/ │ ├── books.py
+
+│ ├── borrowers.py │ └── transactions.py ├── services/ └── requirements.txt
+
+Frontend Structure
+
+frontend/ │ ├── src/ │ ├── components/ │ ├── pages/ │ ├── services/ │ ├── App.js │ └── api.js
+
+13. Non-Functional Requirements
+
+The application should:
+
+· Be responsive across devices
+
+· Handle invalid inputs gracefully
+
+· Maintain clean UI design
+
+· Follow modular coding practices
+
+· Support future scalability
+
+14. Expected Deliverables
+
+Participants are expected to submit:
+
+Source Code
+
+· Complete React frontend
+
+· Complete FastAPI backend
+
+Database
+
+· Database schema/scripts
+
+Documentation
+
+· README file
+
+· Installation/setup guide
+
+· API documentation
+
+Screenshots
+
+· UI screenshots
+
+· API testing screenshots
+
+15. Evaluation Criteria
+
+Criteria Weightage
+
+Frontend Development 20%
+
+Backend API Development 25%
+
+Database Integration 15%
+
+CRUD Functionality 15%
+
+Search Functionality 10%
+
+Code Quality & Structure 10%
+
+Documentation 5%
+
+16. Recommended Technology Stack
+
+Layer Technology
+
+Frontend React
+
+Backend FastAPI
+
+Database SQLite/PostgreSQL
+
+API Testing Postman
+
+Version Control Git/GitHub
+
+17. Recommended Development Timeline
+
+Phase Duration
+
+Requirement Analysis 0.5 Day
+
+Backend Development 1 Day
+
+Frontend Development 1 Day
+
+Integration & Testing 0.5 Day
+
+Documentation 0.5 Day
