@@ -9,7 +9,7 @@ import models
 import crud
 import schemas
 import seed
-from routers import books, borrowers, transactions
+from routers import books, borrowers, transactions, analytics
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -29,8 +29,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Library Management System API",
-    description="REST API for the Library Management System — Phase 1",
-    version="1.0.0",
+    description="REST API for the Library Management System — Phase 2 (ETL & Analytics)",
+    version="2.0.0",
     lifespan=lifespan,
 )
 
@@ -45,6 +45,7 @@ app.add_middleware(
 app.include_router(books.router)
 app.include_router(borrowers.router)
 app.include_router(transactions.router)
+app.include_router(analytics.router)
 
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────

@@ -89,3 +89,72 @@ class DashboardStats(BaseModel):
     total_transactions: int
     active_transactions: int
     recent_transactions: List[TransactionResponse]
+
+
+# ── Phase 2: Analytics Schemas ────────────────────────────────────────────────
+
+class PopularBookItem(BaseModel):
+    book_isbn: str
+    book_title: str
+    author: str
+    category: str
+    total_borrows: int
+    distinct_borrowers: int
+    last_borrowed: Optional[datetime] = None
+
+    model_config = {"from_attributes": True}
+
+
+class CategoryBorrowItem(BaseModel):
+    category: str
+    total_borrows: int
+    unique_books: int
+    unique_borrowers: int
+    avg_borrow_days: Optional[float] = None
+
+    model_config = {"from_attributes": True}
+
+
+class MonthlyTrendItem(BaseModel):
+    year_month: str
+    total_borrows: int
+    total_returns: int
+    net_active: int
+
+    model_config = {"from_attributes": True}
+
+
+class OverdueItem(BaseModel):
+    source_txn_id: int
+    book_isbn: str
+    book_title: str
+    borrower_email: str
+    borrower_name: str
+    borrow_date: datetime
+    days_overdue: int
+    overdue_severity: str
+
+    model_config = {"from_attributes": True}
+
+
+class ETLRunLogResponse(BaseModel):
+    id: int
+    run_at: datetime
+    status: str
+    records_extracted: Optional[int] = None
+    records_after_transform: Optional[int] = None
+    books_loaded: Optional[int] = None
+    popular_books_loaded: Optional[int] = None
+    category_rows_loaded: Optional[int] = None
+    monthly_rows_loaded: Optional[int] = None
+    overdue_rows_loaded: Optional[int] = None
+    error_message: Optional[str] = None
+    duration_seconds: Optional[float] = None
+
+    model_config = {"from_attributes": True}
+
+
+class ETLStatusResponse(BaseModel):
+    total_runs: int
+    last_run: Optional[ETLRunLogResponse] = None
+    data_loaded: bool

@@ -1,0 +1,62 @@
+isbn,title,author,category,publisher,year_published
+978-0-13-468599-1,Clean Code,Robert C. Martin,Technology,Prentice Hall,2008
+978-0-13-235088-4,The Pragmatic Programmer,Andrew Hunt,Technology,Addison-Wesley,1999
+978-0-596-51774-8,JavaScript: The Good Parts,Douglas Crockford,Technology,O'Reilly,2008
+978-0-13-110362-7,The C Programming Language,Brian Kernighan,Technology,Prentice Hall,1988
+978-1-4920-5152-1,Designing Data-Intensive Applications,Martin Kleppmann,Technology,O'Reilly,2017
+978-0-13-468599-2,Refactoring,Martin Fowler,Technology,Addison-Wesley,2018
+978-0-13-468599-3,Domain-Driven Design,Eric Evans,Technology,Addison-Wesley,2003
+978-0-14-028329-7,A Brief History of Time,Stephen Hawking,Science,Bantam Books,1988
+978-0-385-49081-2,The Selfish Gene,Richard Dawkins,Science,Oxford University Press,1976
+978-0-393-31701-2,The Elegant Universe,Brian Greene,Science,W.W. Norton,1999
+978-0-316-76948-0,The Double Helix,James Watson,Science,Atheneum,1968
+978-0-679-72020-1,Surely You're Joking Mr Feynman,Richard Feynman,Science,W.W. Norton,1985
+978-0-14-028329-8,Cosmos,Carl Sagan,Science,Random House,1980
+978-0-7432-7357-1,The Da Vinci Code,Dan Brown,Fiction,Doubleday,2003
+978-0-7432-7356-4,Angels and Demons,Dan Brown,Fiction,Pocket Books,2000
+978-0-7432-7355-7,Inferno,Dan Brown,Fiction,Doubleday,2013
+978-0-7432-7354-0,Origin,Dan Brown,Fiction,Doubleday,2017
+978-0-7432-7353-3,Digital Fortress,Dan Brown,Fiction,St. Martin's Press,1998
+978-0-06-093546-9,To Kill a Mockingbird,Harper Lee,Fiction,J. B. Lippincott,1960
+978-0-7432-7352-6,1984,George Orwell,Fiction,Secker and Warburg,1949
+978-0-7432-7351-9,Brave New World,Aldous Huxley,Fiction,Chatto and Windus,1932
+978-0-7432-7350-2,The Alchemist,Paulo Coelho,Fiction,HarperCollins,1988
+978-0-06-112008-4,The 7 Habits of Highly Effective People,Stephen Covey,Self-Help,Free Press,1989
+978-0-06-196866-2,How to Win Friends and Influence People,Dale Carnegie,Self-Help,Simon & Schuster,1936
+978-1-4767-4863-6,Atomic Habits,James Clear,Self-Help,Avery,2018
+978-1-59184-822-2,The Power of Now,Eckhart Tolle,Self-Help,New World Library,1997
+978-0-06-196866-3,Think and Grow Rich,Napoleon Hill,Self-Help,The Ralston Society,1937
+978-0-06-196866-4,Mindset,Carol Dweck,Self-Help,Random House,2006
+978-0-06-112008-5,Good to Great,Jim Collins,Management,HarperCollins,2001
+978-0-06-112008-6,The Lean Startup,Eric Ries,Management,Crown Business,2011
+978-0-06-112008-7,Zero to One,Peter Thiel,Management,Crown Business,2014
+978-0-06-112008-8,The Innovator's Dilemma,Clayton Christensen,Management,Harvard Business Review Press,1997
+978-0-06-112008-9,Leaders Eat Last,Simon Sinek,Management,Portfolio,2014
+978-0-06-112008-0,Start with Why,Simon Sinek,Management,Portfolio,2009
+978-0-385-33348-1,Sapiens,Yuval Noah Harari,History,Harper,2011
+978-0-385-33348-2,Homo Deus,Yuval Noah Harari,History,Harper,2015
+978-0-385-33348-3,Guns Germs and Steel,Jared Diamond,History,W.W. Norton,1997
+978-0-385-33348-4,The Rise and Fall of the Roman Empire,Edward Gibbon,History,Strahan and Cadell,1776
+978-0-385-33348-5,The Art of War,Sun Tzu,History,Shambhala,2005
+978-0-385-33348-6,A People's History of the United States,Howard Zinn,History,Harper,1980
+978-1-4920-5152-2,Python for Data Analysis,Wes McKinney,Data Science,O'Reilly,2017
+978-1-4920-5152-3,Hands-On Machine Learning,Aurelien Geron,Data Science,O'Reilly,2019
+978-1-4920-5152-4,The Elements of Statistical Learning,Trevor Hastie,Data Science,Springer,2001
+978-1-4920-5152-5,Pattern Recognition and Machine Learning,Christopher Bishop,Data Science,Springer,2006
+978-1-4920-5152-6,Deep Learning,Ian Goodfellow,Data Science,MIT Press,2016
+978-1-4920-5152-7,Data Science from Scratch,Joel Grus,Data Science,O'Reilly,2019
+978-0-14-028329-9,Meditations,Marcus Aurelius,Philosophy,Penguin Classics,180
+978-0-14-028329-0,The Republic,Plato,Philosophy,Penguin Classics,380
+978-0-14-028330-0,Nicomachean Ethics,Aristotle,Philosophy,Penguin Classics,350
+978-0-14-028330-1,Beyond Good and Evil,Friedrich Nietzsche,Philosophy,Cambridge University Press,1886
+978-0-14-028330-2,The Art of Happiness,Dalai Lama,Philosophy,Riverhead Books,1998
+978-0-14-028330-3,Being and Nothingness,Jean-Paul Sartre,Philosophy,Philosophical Library,1943
+978-0-7432-7349-6,Steve Jobs,Walter Isaacson,Biography,Simon & Schuster,2011
+978-0-7432-7348-9,Elon Musk,Ashlee Vance,Biography,Ecco,2015
+978-0-7432-7347-2,The Diary of a Young Girl,Anne Frank,Biography,Doubleday,1947
+978-0-7432-7346-5,Long Walk to Freedom,Nelson Mandela,Biography,Little Brown,1994
+978-0-7432-7345-8,Leonardo da Vinci,Walter Isaacson,Biography,Simon & Schuster,2017
+978-0-06-196866-5,Thinking Fast and Slow,Daniel Kahneman,Economics,Farrar Straus Giroux,2011
+978-0-06-196866-6,Freakonomics,Steven Levitt,Economics,William Morrow,2005
+978-0-06-196866-7,The Wealth of Nations,Adam Smith,Economics,W. Strahan and T. Cadell,1776
+978-0-06-196866-8,Capital in the Twenty-First Century,Thomas Piketty,Economics,Harvard University Press,2013

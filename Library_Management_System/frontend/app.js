@@ -21,7 +21,7 @@ const {
 
 const {
   BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie,
-  Cell, Legend, ResponsiveContainer
+  Cell, Legend, ResponsiveContainer, LineChart, Line
 } = Recharts;
 
 
@@ -51,6 +51,12 @@ const api = {
   borrowBook:          d         => http.post('/borrow', d),
   returnBook:          d         => http.post('/return', d),
   searchBooks:         (q, cat)  => http.get('/search', { params: { q, category: cat } }),
+  getPopularBooks:     (limit=20)=> http.get('/analytics/popular-books', { params: { limit } }),
+  getCategoryTrends:   ()        => http.get('/analytics/category-trends'),
+  getMonthlyTrends:    (months=12)=> http.get('/analytics/monthly-trends', { params: { months } }),
+  getOverdue:          (sev)     => http.get('/analytics/overdue', sev ? { params: { severity: sev } } : {}),
+  runETL:              ()        => http.post('/analytics/run-etl'),
+  getETLStatus:        ()        => http.get('/analytics/etl-status'),
 };
 
 
@@ -145,6 +151,7 @@ const ICONS = {
   history:     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>,
   check:       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
   alert:       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
+  chart:       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
 };
 
 function Ico({ n, size = 16, cls = '' }) {
@@ -317,6 +324,7 @@ const NAV = [
   { hash: '#/borrowers',   icon: 'users',     label: 'Borrowers'    },
   { hash: '#/transactions',icon: 'arrows',    label: 'Transactions' },
   { hash: '#/search',      icon: 'search',    label: 'Search'       },
+  { hash: '#/analytics',   icon: 'chart',     label: 'Analytics'    },
 ];
 
 function Sidebar({ currentHash, go }) {
@@ -350,7 +358,7 @@ function Sidebar({ currentHash, go }) {
       </nav>
 
       <div className="px-4 py-4 border-t border-indigo-700">
-        <p className="text-indigo-400 text-xs">Phase 1 · v1.0.0</p>
+        <p className="text-indigo-400 text-xs">Phase 2 · v2.0.0</p>
       </div>
     </aside>
   );
@@ -1093,6 +1101,336 @@ function Search() {
 
 
 // ─────────────────────────────────────────────────────────────────────────────
+// PAGE: ANALYTICS (Phase 2)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const PIE_COLORS = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#84cc16','#ec4899','#14b8a6'];
+
+const SEVERITY_STYLES = {
+  mild:     'bg-amber-100 text-amber-700',
+  moderate: 'bg-orange-100 text-orange-700',
+  severe:   'bg-red-100 text-red-700',
+};
+
+function ETLPanel({ etlStatus, onRunETL, etlRunning }) {
+  const lastRun = etlStatus?.last_run;
+  const runAt   = lastRun ? new Date(lastRun.run_at + 'Z').toLocaleString() : null;
+  const statusColor = {
+    success: 'text-emerald-600',
+    failed:  'text-red-500',
+    running: 'text-amber-500',
+  }[lastRun?.status] || 'text-gray-400';
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
+        <p className="text-sm font-semibold text-gray-800 mb-0.5">ETL Pipeline</p>
+        {lastRun ? (
+          <p className="text-xs text-gray-500">
+            Last run: <span className={`font-medium ${statusColor}`}>{lastRun.status}</span>
+            {' '}· {runAt}
+            {lastRun.duration_seconds != null && ` · ${lastRun.duration_seconds}s`}
+          </p>
+        ) : (
+          <p className="text-xs text-gray-400">No ETL runs yet — click Run to load analytics data</p>
+        )}
+      </div>
+      <Btn onClick={onRunETL} disabled={etlRunning} cls="shrink-0">
+        {etlRunning
+          ? <><span className="spin" style={{ display:'inline-block', width:14, height:14, border:'2px solid #c7d2fe', borderTopColor:'#fff', borderRadius:'50%' }} /> Running…</>
+          : <><Ico n="refresh" size={14} /> Run ETL Pipeline</>
+        }
+      </Btn>
+    </div>
+  );
+}
+
+function Analytics() {
+  const [tab, setTab] = useState('popular');
+  const [etlStatus, setEtlStatus]     = useState(null);
+  const [popularBooks, setPopularBooks] = useState([]);
+  const [categoryData, setCategoryData] = useState([]);
+  const [monthlyTrends, setMonthlyTrends] = useState([]);
+  const [overdueData, setOverdueData]   = useState([]);
+  const [loading, setLoading]           = useState(true);
+  const [etlRunning, setEtlRunning]     = useState(false);
+  const [severityFilter, setSeverityFilter] = useState('');
+  const toast = useToast();
+
+  const loadAll = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [statusRes, popRes, catRes, monthRes, overdueRes] = await Promise.all([
+        api.getETLStatus(),
+        api.getPopularBooks(20),
+        api.getCategoryTrends(),
+        api.getMonthlyTrends(18),
+        api.getOverdue(),
+      ]);
+      setEtlStatus(statusRes.data);
+      setPopularBooks(popRes.data);
+      setCategoryData(catRes.data);
+      setMonthlyTrends(monthRes.data);
+      setOverdueData(overdueRes.data);
+    } catch (e) { toast.error(e.message); }
+    finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { loadAll(); }, []);
+
+  const handleRunETL = async () => {
+    setEtlRunning(true);
+    try {
+      await api.runETL();
+      toast.success('ETL pipeline completed successfully!');
+      await loadAll();
+    } catch (e) {
+      toast.error('ETL failed: ' + e.message);
+    } finally {
+      setEtlRunning(false);
+    }
+  };
+
+  const filteredOverdue = severityFilter
+    ? overdueData.filter(r => r.overdue_severity === severityFilter)
+    : overdueData;
+
+  const dataLoaded = etlStatus?.data_loaded;
+
+  const TABS = [
+    { id: 'popular',  label: 'Popular Books'   },
+    { id: 'category', label: 'Categories'      },
+    { id: 'monthly',  label: 'Monthly Trends'  },
+    { id: 'overdue',  label: `Overdue (${overdueData.length})` },
+  ];
+
+  return (
+    <div className="p-6">
+      <PageHeader
+        title="Analytics"
+        subtitle="ETL-powered insights from library transaction data"
+      />
+
+      <ETLPanel etlStatus={etlStatus} onRunETL={handleRunETL} etlRunning={etlRunning} />
+
+      {!dataLoaded && !loading && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-6 flex items-start gap-3">
+          <Ico n="alert" size={20} cls="text-amber-500 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-amber-800">No analytics data loaded yet</p>
+            <p className="text-xs text-amber-600 mt-0.5">Click "Run ETL Pipeline" above to extract, transform, and load data from the datasets folder.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Tab bar */}
+      <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-6 w-fit">
+        {TABS.map(t => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              tab === t.id ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {loading ? <Spinner /> : (
+        <>
+          {/* ── Popular Books ───────────────────────────────────────── */}
+          {tab === 'popular' && (
+            <div className="flex flex-col gap-6">
+              {popularBooks.length === 0 ? (
+                <EmptyState icon="chart" text="No data — run ETL to populate analytics" />
+              ) : (
+                <>
+                  <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                    <h3 className="text-sm font-semibold text-gray-700 mb-4">Top 15 Most Borrowed Books</h3>
+                    <ResponsiveContainer width="100%" height={420}>
+                      <BarChart
+                        layout="vertical"
+                        data={popularBooks.slice(0, 15)}
+                        margin={{ top: 4, right: 24, bottom: 4, left: 140 }}
+                      >
+                        <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
+                        <YAxis
+                          type="category"
+                          dataKey="book_title"
+                          tick={{ fontSize: 11 }}
+                          width={130}
+                        />
+                        <Tooltip formatter={(v) => [v, 'Borrows']} />
+                        <Bar dataKey="total_borrows" fill="#6366f1" radius={[0, 4, 4, 0]} name="Borrows" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                    <Table head={['Title', 'Author', 'Category', 'Total Borrows', 'Distinct Borrowers', 'Last Borrowed']}>
+                      {popularBooks.map((b, i) => (
+                        <tr key={i} className="hover:bg-gray-50">
+                          <td className="px-4 py-2.5 text-sm font-medium text-gray-900 max-w-xs truncate">{b.book_title}</td>
+                          <td className="px-4 py-2.5 text-sm text-gray-600">{b.author}</td>
+                          <td className="px-4 py-2.5 text-sm"><span className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full text-xs">{b.category}</span></td>
+                          <td className="px-4 py-2.5 text-sm font-semibold text-indigo-600">{b.total_borrows}</td>
+                          <td className="px-4 py-2.5 text-sm text-gray-600">{b.distinct_borrowers}</td>
+                          <td className="px-4 py-2.5 text-sm text-gray-500">{b.last_borrowed ? fmtDate(b.last_borrowed) : '—'}</td>
+                        </tr>
+                      ))}
+                    </Table>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* ── Category Distribution ───────────────────────────────── */}
+          {tab === 'category' && (
+            <div className="flex flex-col gap-6">
+              {categoryData.length === 0 ? (
+                <EmptyState icon="chart" text="No data — run ETL to populate analytics" />
+              ) : (
+                <>
+                  <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                    <h3 className="text-sm font-semibold text-gray-700 mb-4">Borrowing by Category</h3>
+                    <div className="flex justify-center">
+                      <ResponsiveContainer width="100%" height={340}>
+                        <PieChart>
+                          <Pie
+                            data={categoryData}
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={130}
+                            paddingAngle={3}
+                            dataKey="total_borrows"
+                            nameKey="category"
+                            label={({ category, percent }) => `${category} (${(percent * 100).toFixed(0)}%)`}
+                            labelLine={true}
+                          >
+                            {categoryData.map((_, i) => (
+                              <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(v) => [v, 'Borrows']} />
+                          <Legend />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                    <Table head={['Category', 'Total Borrows', 'Unique Books', 'Unique Borrowers', 'Avg Borrow Days']}>
+                      {categoryData.map((c, i) => (
+                        <tr key={i} className="hover:bg-gray-50">
+                          <td className="px-4 py-2.5 text-sm font-medium text-gray-900">
+                            <span style={{ display:'inline-block', width:10, height:10, borderRadius:'50%', background: PIE_COLORS[i % PIE_COLORS.length], marginRight:8, verticalAlign:'middle' }} />
+                            {c.category}
+                          </td>
+                          <td className="px-4 py-2.5 text-sm font-semibold text-indigo-600">{c.total_borrows}</td>
+                          <td className="px-4 py-2.5 text-sm text-gray-600">{c.unique_books}</td>
+                          <td className="px-4 py-2.5 text-sm text-gray-600">{c.unique_borrowers}</td>
+                          <td className="px-4 py-2.5 text-sm text-gray-500">{c.avg_borrow_days != null ? c.avg_borrow_days.toFixed(1) + ' days' : '—'}</td>
+                        </tr>
+                      ))}
+                    </Table>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* ── Monthly Trends ──────────────────────────────────────── */}
+          {tab === 'monthly' && (
+            <div className="flex flex-col gap-6">
+              {monthlyTrends.length === 0 ? (
+                <EmptyState icon="chart" text="No data — run ETL to populate analytics" />
+              ) : (
+                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-4">Monthly Borrowing vs Returns</h3>
+                  <ResponsiveContainer width="100%" height={360}>
+                    <LineChart data={monthlyTrends} margin={{ top: 8, right: 24, bottom: 8, left: 8 }}>
+                      <XAxis dataKey="year_month" tick={{ fontSize: 11 }} />
+                      <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                      <Tooltip />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="total_borrows"
+                        stroke="#6366f1"
+                        strokeWidth={2}
+                        dot={{ r: 4 }}
+                        name="Borrows"
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="total_returns"
+                        stroke="#10b981"
+                        strokeWidth={2}
+                        dot={{ r: 4 }}
+                        name="Returns"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── Overdue Transactions ─────────────────────────────────── */}
+          {tab === 'overdue' && (
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-3">
+                <select
+                  value={severityFilter}
+                  onChange={e => setSeverityFilter(e.target.value)}
+                  className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white"
+                >
+                  <option value="">All Severities</option>
+                  <option value="mild">Mild (1–7 days)</option>
+                  <option value="moderate">Moderate (8–21 days)</option>
+                  <option value="severe">Severe (21+ days)</option>
+                </select>
+                {etlStatus?.last_run && (
+                  <p className="text-xs text-gray-400">
+                    As of {new Date(etlStatus.last_run.run_at + 'Z').toLocaleString()}
+                  </p>
+                )}
+              </div>
+              {filteredOverdue.length === 0 ? (
+                <EmptyState icon="check" text={severityFilter ? `No ${severityFilter} overdue books` : 'No overdue books — great!'} />
+              ) : (
+                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                  <Table head={['Book', 'Borrower', 'Borrow Date', 'Days Overdue', 'Severity']}>
+                    {filteredOverdue.map((r, i) => (
+                      <tr key={i} className="hover:bg-gray-50">
+                        <td className="px-4 py-2.5 text-sm font-medium text-gray-900 max-w-xs truncate">{r.book_title}</td>
+                        <td className="px-4 py-2.5 text-sm text-gray-600">
+                          <div>{r.borrower_name}</div>
+                          <div className="text-xs text-gray-400">{r.borrower_email}</div>
+                        </td>
+                        <td className="px-4 py-2.5 text-sm text-gray-500">{fmtDate(r.borrow_date)}</td>
+                        <td className="px-4 py-2.5 text-sm font-semibold text-red-600">{r.days_overdue}d</td>
+                        <td className="px-4 py-2.5">
+                          <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize ${SEVERITY_STYLES[r.overdue_severity] || ''}`}>
+                            {r.overdue_severity}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </Table>
+                </div>
+              )}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
 // ROOT APP
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -1105,6 +1443,7 @@ function App() {
     if (hash.startsWith('#/borrowers'))   return <Borrowers />;
     if (hash.startsWith('#/transactions'))return <Transactions />;
     if (hash.startsWith('#/search'))      return <Search />;
+    if (hash.startsWith('#/analytics'))   return <Analytics />;
     return <Dashboard go={go} />;
   };
 
