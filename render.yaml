@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: ai-product-strategy-assistant
+    runtime: python
+    rootDir: Assignment
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
+    plan: free
+    envVars:
+      - key: OPENAI_API_KEY
+        value: learner004
+      - key: OPENAI_BASE_URL
+        value: https://keygateway.arshnivlabs.com/v1
