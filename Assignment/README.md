@@ -1,5 +1,7 @@
 # AI-Powered Product Strategy Assistant
 
+**Live App:** https://sampy-3jhr.onrender.com/
+
 A multi-agent AI system that helps Product Managers transform raw sales data into actionable strategic insights using 8 specialised GPT-4o Mini agents.
 
 ---
@@ -146,7 +148,7 @@ Assessment/
 ## Submission Checklist
 
 - [x] Source code repository
-- [ ] Live application URL (deploy to Render / Railway)
+- [x] Live application URL — https://sampy-3jhr.onrender.com/
 - [x] Architecture diagram (downloadable from app)
 - [x] Sample generated PDF report (download from app after analysis)
 - [x] Project documentation (this README)
